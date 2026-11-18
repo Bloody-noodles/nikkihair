@@ -1,33 +1,27 @@
 # Nikihairstyles — Static Website
 
-Plain HTML + CSS + vanilla JavaScript. No build step, no backend, no dependencies.
-Just open `index.html` in a browser, or drop the folder on any static host.
+Plain HTML, CSS and vanilla JavaScript. No build step, backend or package dependencies. Open `index.html` in a browser or deploy the folder to a static host.
 
-## Host it free (pick one)
+## Campaign demo
 
-- **Netlify** (easiest): app.netlify.com/drop — drag this folder onto the page. Live URL in ~30s.
-- **Vercel**: `npx vercel` inside this folder, or import the folder on vercel.com.
-- **GitHub Pages**: push the folder to a repo → Settings → Pages → deploy from branch.
+The December Edit is a presentation concept. Crossed-out prices, sale prices and gift offers are samples; confirm real prices, inventory, offer terms and campaign dates with the business before publishing them as live promotions.
 
-## Before showing the client
+The salon and client photos supplied for this site are used as local assets. Images described as illustrative are stock demo references and are not Nikkihairstyles client results. Some illustrative service photos and the Google Fonts stylesheet load from the internet.
 
-1. **Replace demo photos** in `images/` with her real work (from her Instagram @nikihairstyles50).
-   Keep the same file names, or update the `src` attributes in `index.html`.
-2. **Confirm services & prices** — edit the cards in the Services section of `index.html`.
-   Swap "Price on request" for real prices once she confirms them.
-3. **Facebook link** — the footer Facebook link is a placeholder; point it to her
-   "Nikihairstyles Justina" Facebook page.
-4. **WhatsApp number** is set in `js/script.js` (`WHATSAPP_NUMBER = "2347040569047"`).
+## Before using as a live business site
+
+- Confirm current service names, prices, product specifications, stock and promo terms.
+- Confirm appointment location details and opening hours; the page currently says Uyo and by appointment.
+- Replace illustrative beauty, nails and pedicure photos with Nikkihairstyles work when available.
+- Confirm the WhatsApp number and Instagram profile.
 
 ## Structure
 
-    index.html        — all sections (hero, services, gallery, about, booking, footer)
-    css/style.css     — full design system (pink/blush theme, responsive)
-    js/script.js      — nav, reveal animations, gallery filters + lightbox, WhatsApp booking
-    images/           — photos (currently demo placeholders)
+    index.html        — page content and metadata
+    css/style.css     — design system and responsive layout
+    js/script.js      — navigation, gallery, scroll effects and WhatsApp booking
+    images/           — salon photos, promo references and transition videos
 
-## How booking works
+## Booking flow
 
-The form validates input, then opens WhatsApp with a pre-written message.
-Nothing is stored or sent to a server — the request lands in her WhatsApp chat
-and she confirms the slot manually. Instagram DM is offered as an alternative.
+The booking form validates the request and opens WhatsApp with a pre-written message. It does not store or send information to a server. Niki confirms availability and appointment details in WhatsApp. Product enquiries can omit an appointment date.

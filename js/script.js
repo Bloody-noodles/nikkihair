@@ -51,6 +51,40 @@
     revealEls.forEach((el) => el.classList.add("in"));
   }
 
+  /* Play the transition while it is in view, and pause it when scrolled away. */
+  const transitionVideos = Array.from(document.querySelectorAll(".gallery__video-card video"));
+  if (transitionVideos.length && "IntersectionObserver" in window && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    const videoObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        const video = entry.target;
+        if (entry.isIntersecting && !document.hidden) {
+          transitionVideos.forEach((otherVideo) => {
+            if (otherVideo !== video) otherVideo.pause();
+          });
+          video.play().catch(() => {});
+        } else {
+          video.pause();
+        }
+      });
+    }, { threshold: 0.45 });
+    transitionVideos.forEach((video) => videoObserver.observe(video));
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) {
+        transitionVideos.forEach((video) => video.pause());
+        return;
+      }
+      const visibleVideo = transitionVideos.find((video) => {
+        const rect = video.getBoundingClientRect();
+        const visibleHeight = Math.max(0, Math.min(rect.bottom, window.innerHeight) - Math.max(rect.top, 0));
+        return rect.height && visibleHeight / rect.height >= 0.45;
+      });
+      transitionVideos.forEach((video) => {
+        if (video === visibleVideo) video.play().catch(() => {});
+        else video.pause();
+      });
+    });
+  }
+
   /* ---------- 4. gallery filters + lightbox ---------- */
   const chips = document.querySelectorAll("#galleryFilters .chip");
   const items = Array.from(document.querySelectorAll(".gallery__item"));
@@ -110,7 +144,23 @@
   const form = document.getElementById("bookingForm");
   const errEl = document.getElementById("bkError");
   const dateInput = document.getElementById("bkDate");
-  dateInput.min = new Date().toISOString().split("T")[0]; // no past dates
+  const serviceInput = document.getElementById("bkService");
+  const dateLabel = dateInput.closest("label").querySelector("span");
+  const timeField = document.getElementById("bkTime").closest(".field");
+  const timeLabel = timeField.querySelector("span");
+  const localToday = new Date();
+  localToday.setMinutes(localToday.getMinutes() - localToday.getTimezoneOffset());
+  dateInput.min = localToday.toISOString().split("T")[0]; // no past dates in the visitor's local timezone
+
+  const isProductOrder = () => serviceInput.value.startsWith("Hair Purchase");
+  const updateRequestFields = () => {
+    const productOrder = isProductOrder();
+    dateInput.required = !productOrder;
+    dateLabel.textContent = productOrder ? "Preferred date (optional)" : "Preferred date *";
+    timeLabel.textContent = productOrder ? "Preferred time (optional)" : "Preferred time *";
+  };
+  serviceInput.addEventListener("change", updateRequestFields);
+  updateRequestFields();
 
   const niceDate = (iso) =>
     new Date(iso + "T00:00:00").toLocaleDateString("en-GB", {
@@ -119,28 +169,32 @@
 
   form.addEventListener("submit", (e) => {
     e.preventDefault();
-    const service = document.getElementById("bkService").value;
+    const service = serviceInput.value;
+    const productOrder = isProductOrder();
     const date = dateInput.value;
     const time = form.querySelector('input[name="bkTime"]:checked').value;
     const name = document.getElementById("bkName").value.trim();
     const note = document.getElementById("bkNote").value.trim();
 
     let err = "";
-    if (!service) err = "Please choose a hairstyle/service.";
-    else if (!date) err = "Please pick a preferred date.";
+    if (!service) err = "Please choose a service or hair product.";
+    else if (!productOrder && !date) err = "Please pick a preferred date.";
     else if (!name) err = "Please enter your name.";
     errEl.textContent = err;
     if (err) return;
 
     const lines = [
-      "Hello Nikihairstyles! I'd like to book an appointment.",
+      productOrder
+      ? "Hello Nikihairstyles! I'd like to ask about a hair product."
+        : "Hello Nikihairstyles! I'd like to book a service.",
       "",
       "Name: " + name,
-      "Service: " + service,
-      "Preferred date: " + niceDate(date),
-      "Preferred time: " + time,
+      "Interested in: " + service,
     ];
-    if (note) lines.push("Note: " + note);
+    if (date) lines.push((productOrder ? "Preferred date: " : "Appointment date: ") + niceDate(date));
+    if (date && !productOrder) lines.push("Preferred time: " + time);
+    if (note) lines.push("Details: " + note);
+    lines.push("I can send a reference photo or product inspiration here if helpful.");
     lines.push("", "(Sent from your website)");
 
     window.open(
